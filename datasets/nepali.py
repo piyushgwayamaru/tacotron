@@ -23,11 +23,11 @@ def build_from_path(in_dir, out_dir, num_workers=1, tqdm=lambda x: x):
   executor = ProcessPoolExecutor(max_workers=num_workers)
   futures = []
   index = 1
-  print(os.path.join(in_dir, 'line_index.tsv'))
-  with open(os.path.join(in_dir, 'line_index.tsv'), encoding='utf-8') as f:
+  print(os.path.join(in_dir + '/', 'line_index.tsv'))
+  with open(os.path.join(in_dir + '/', 'line_index.tsv'), encoding='utf-8') as f:
     for line in f:
       parts = line.strip().split('\t')
-      wav_path = os.path.join(in_dir, 'wavs', '%s.wav' % parts[0])
+      wav_path = os.path.join(in_dir + '/', 'wavs', '%s.wav' % parts[0])
       text = parts[1]
       futures.append(executor.submit(partial(_process_utterance, out_dir, index, wav_path, text)))
       index += 1

@@ -6,6 +6,7 @@ import subprocess
 import time
 import tensorflow as tf
 import traceback
+import scipy.io.wavfile as wavfile
 
 from datasets.datafeeder import DataFeeder
 from hparams import hparams, hparams_debug_string
@@ -36,7 +37,12 @@ def add_stats(model):
     tf.summary.histogram('gradient_norm', gradient_norms)
     tf.summary.scalar('max_gradient_norm', tf.reduce_max(gradient_norms))
     return tf.summary.merge_all()
-
+  
+  with tf.variable_scope('model', reuse=True):  # reuse weights
+    eval_model = create_model(args.model, hparams)
+    eval_model.initialize(feeder.eval_inputs, feeder.eval_input_lengths, feeder.eval_mel_targets, feeder.eval_linear_targets)
+    eval_model.add_loss()
+    eval_stats = add_stats(eval_model)  # this creates validation summaries
 
 def time_string():
   return datetime.now().strftime('%Y-%m-%d %H:%M')
@@ -44,7 +50,7 @@ def time_string():
 
 def train(log_dir, args):
   commit = get_git_commit() if args.git else 'None'
-  checkpoint_path = os.path.join(log_dir, 'model.ckpt')
+  checkpoint_path = os.path.join(log_dir + 'model/', 'model.ckpt')
   input_path = os.path.join(args.base_dir, args.input)
   log('Checkpoint path: %s' % checkpoint_path)
   log('Loading training data from: %s' % input_path)
@@ -113,7 +119,7 @@ def train(log_dir, args):
             model.inputs[0], model.linear_outputs[0], model.alignments[0]])
           waveform = audio.inv_spectrogram(spectrogram.T)
           audio.save_wav(waveform, os.path.join(log_dir, 'step-%d-audio.wav' % step))
-          plot.plot_alignment(alignment, os.path.join(log_dir, 'step-%d-align.png' % step),
+          plot.plot_alignment(alignment, os.path.join(log_dir , 'step-%d-align.png' % step),
             info='%s, %s, %s, step=%d, loss=%.5f' % (args.model, commit, time_string(), step, loss))
           log('Input: %s' % sequence_to_text(input_seq))
 
@@ -122,10 +128,9 @@ def train(log_dir, args):
       traceback.print_exc()
       coord.request_stop(e)
 
-
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--base_dir', default='E:/tacotron')
+  parser.add_argument('--base_dir', default='E:/newtacotron/tacotron/')
   # parser.add_argument('--base_dir', default=os.path.expanduser('~/PycharmProjects/tacotron'))
   parser.add_argument('--input', default='training/train.txt')
   parser.add_argument('--model', default='tacotron')
@@ -135,15 +140,16 @@ def main():
   parser.add_argument('--restore_step', type=int, help='Global step to restore from checkpoint.')
   parser.add_argument('--summary_interval', type=int, default=100,
     help='Steps between running summary ops.')
-  parser.add_argument('--checkpoint_interval', type=int, default=1000,
+  parser.add_argument('--checkpoint_interval', type=int, default=50,
     help='Steps between writing checkpoints.')
   parser.add_argument('--slack_url', help='Slack webhook URL to get periodic reports.')
   parser.add_argument('--tf_log_level', type=int, default=1, help='Tensorflow C++ log level.')
   parser.add_argument('--git', action='store_true', help='If set, verify that the client is clean.')
+
   args = parser.parse_args()
   os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(args.tf_log_level)
   run_name = args.name or args.model
-  log_dir = os.path.join(args.base_dir, 'logs-%s' % run_name)
+  log_dir = os.path.join(args.base_dir, 'logs-%s/' % run_name)
   os.makedirs(log_dir, exist_ok=True)
   infolog.init(os.path.join(log_dir, 'train.log'), run_name, args.slack_url)
   hparams.parse(args.hparams)

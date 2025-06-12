@@ -2,9 +2,12 @@ import librosa
 import librosa.filters
 import math
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 import scipy
 from hparams import hparams
+
+import tensorflow as tf
+tf.compat.v1.disable_eager_execution()
 
 
 def load_wav(path):
@@ -106,9 +109,24 @@ def _stft_tensorflow(signals):
   return tf.contrib.signal.stft(signals, win_length, hop_length, n_fft, pad_end=False)
 
 
+# def _istft_tensorflow(stfts):
+#   n_fft, hop_length, win_length = _stft_parameters()
+#   return tf.contrib.signal.inverse_stft(stfts, win_length, hop_length, n_fft)
+
 def _istft_tensorflow(stfts):
-  n_fft, hop_length, win_length = _stft_parameters()
-  return tf.contrib.signal.inverse_stft(stfts, win_length, hop_length, n_fft)
+  """
+  TensorFlow ISTFT compatible with Griffin-Lim loop.
+  Uses plain ints for frame_length / frame_step so TF never
+  tries to turn a symbolic tensor into a NumPy array.
+  """
+  n_fft, hop_length, win_length = _stft_parameters()   # these are Python ints
+  return tf.contrib.signal.inverse_stft(
+      stfts,
+      frame_length=win_length,
+      frame_step=hop_length,
+      fft_length=n_fft,
+      window_fn=tf.contrib.signal.inverse_stft_window_fn(hop_length)
+  )
 
 
 def _stft_parameters():

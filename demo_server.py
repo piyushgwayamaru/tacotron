@@ -3,7 +3,10 @@ import falcon
 from hparams import hparams, hparams_debug_string
 import os
 from synthesizer import Synthesizer
+import scipy.io.wavfile as wavfile
 
+import tensorflow as tf
+tf.compat.v1.disable_eager_execution()
 
 html_body = '''<html><title>Demo</title>
 <style>
@@ -19,7 +22,7 @@ button[disabled] {opacity: 0.4; cursor: default}
 </style>
 <body>
 <form>
-  <input id="text" type="text" size="40" placeholder="Enter Text">
+  <textarea id ="text" placeholder = "Enter Nepali Text" row="10" column ="80" noresize></textarea>
   <button id="button" name="synthesize">Speak</button>
 </form>
 <p id="message"></p>

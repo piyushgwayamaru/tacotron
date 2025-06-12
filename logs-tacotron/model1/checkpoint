@@ -1,0 +1,6 @@
+model_checkpoint_path: "E:/newtacotron/tacotron/logs-tacotron/model/model.ckpt-500"
+all_model_checkpoint_paths: "E:/newtacotron/tacotron/logs-tacotron/model/model.ckpt-300"
+all_model_checkpoint_paths: "E:/newtacotron/tacotron/logs-tacotron/model/model.ckpt-350"
+all_model_checkpoint_paths: "E:/newtacotron/tacotron/logs-tacotron/model/model.ckpt-400"
+all_model_checkpoint_paths: "E:/newtacotron/tacotron/logs-tacotron/model/model.ckpt-450"
+all_model_checkpoint_paths: "E:/newtacotron/tacotron/logs-tacotron/model/model.ckpt-500"

@@ -43,8 +43,8 @@ def write_metadata(metadata, out_dir):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--base_dir', default=os.path.expanduser('E:\\tacotron'))
-  parser.add_argument('--output', default='training')
+  parser.add_argument('--base_dir', default=os.path.expanduser('E:/newtacotron/tacotron/'))
+  parser.add_argument('--output', default='evaluation')
   parser.add_argument('--dataset', required=True, choices=['blizzard', 'ljspeech', 'nepali'])
   parser.add_argument('--num_workers', type=int, default=cpu_count())
   args = parser.parse_args()
@@ -58,3 +58,7 @@ def main():
 
 if __name__ == "__main__":
   main()
+
+
+#run preprocess.py using
+# python preprocess.py --dataset nepali --num_workers 1
